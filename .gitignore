@@ -48,14 +48,6 @@ outputs/*/
 logs/
 wandb/
 
-# Data files (add specific patterns as needed)
-data/*.txt
-data/*.json
-data/*.csv
-data/*.parquet
-!data/.gitkeep
-!data/sample_data/
-
 # OS generated files
 .DS_Store
 .DS_Store?
