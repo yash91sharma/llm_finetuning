@@ -82,6 +82,11 @@ def training_phase(config_path):
     logging.info("=== PHASE 3: TRAINING MODEL ===")
     return run_script("train_model.py", config_path=config_path)
 
+def training_lora_phase(config_path):
+    """Execute the LoRA training phase."""
+    logging.info("=== PHASE 3: TRAINING MODEL WITH LORA ===")
+    return run_script("train_lora.py", config_path=config_path)
+
 def validate_config(config):
     """Validate the configuration file."""
     required_sections = ['model', 'data', 'training', 'device']
@@ -90,6 +95,17 @@ def validate_config(config):
         if section not in config:
             logging.error(f"Missing required configuration section: {section}")
             return False
+    
+    # Check if this is a LoRA config
+    if 'lora' in config:
+        logging.info("Detected LoRA configuration")
+        lora_config = config['lora']
+        required_lora_fields = ['r', 'lora_alpha', 'lora_dropout', 'target_modules']
+        
+        for field in required_lora_fields:
+            if field not in lora_config:
+                logging.error(f"Missing required LoRA configuration field: {field}")
+                return False
     
     # Check if data files exist
     train_file = config['data']['train_file']
@@ -140,6 +156,43 @@ def full_pipeline(config_path):
     
     return True
 
+def full_lora_pipeline(config_path):
+    """Execute the complete LoRA fine-tuning pipeline."""
+    logging.info("Starting GPT-2 LoRA Fine-tuning Pipeline")
+    logging.info("=" * 50)
+    
+    # Load and validate configuration
+    config = load_config(config_path)
+    if config is None:
+        return False
+    
+    if not validate_config(config):
+        return False
+    
+    # Check environment
+    if not check_python_environment():
+        return False
+    
+    # Execute phases
+    phases = [
+        ("Download", download_phase),
+        ("Setup", setup_phase),
+        ("LoRA Training", training_lora_phase)
+    ]
+    
+    for phase_name, phase_func in phases:
+        logging.info(f"\nStarting {phase_name} phase...")
+        if not phase_func(config_path):
+            logging.error(f"{phase_name} phase failed!")
+            return False
+        logging.info(f"{phase_name} phase completed successfully!")
+    
+    logging.info("\n" + "=" * 50)
+    logging.info("GPT-2 LoRA Fine-tuning Pipeline completed successfully!")
+    logging.info("Check the outputs/ directory for your LoRA adapter.")
+    
+    return True
+
 def list_models():
     """List available models in the models directory."""
     models_dir = "models"
@@ -172,13 +225,17 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python main.py --full                     # Run complete pipeline
+  python main.py --full                     # Run complete pipeline (full fine-tuning)
+  python main.py --full-lora                # Run complete pipeline with LoRA
   python main.py --download                 # Download model only
   python main.py --setup                    # Setup device only
-  python main.py --train                    # Train model only
+  python main.py --train                    # Train model only (full fine-tuning)
+  python main.py --train-lora               # Train model with LoRA
   python main.py --test outputs/model_dir   # Test specific model
+  python main.py --test-lora outputs/lora_dir # Test LoRA adapter
   python main.py --list-models              # List available models
   python main.py --list-outputs             # List training outputs
+  python main.py --verify-lora              # Verify LoRA setup
         """
     )
     
@@ -194,12 +251,16 @@ Examples:
     parser.add_argument("--download", action="store_true", help="Download model only")
     parser.add_argument("--setup", action="store_true", help="Setup device only")
     parser.add_argument("--train", action="store_true", help="Train model only")
+    parser.add_argument("--train-lora", action="store_true", help="Train model with LoRA")
+    parser.add_argument("--full-lora", action="store_true", help="Run complete pipeline with LoRA")
     parser.add_argument("--test", type=str, help="Test model at specified path")
+    parser.add_argument("--test-lora", type=str, help="Test LoRA adapter at specified path")
     
     # Utility options
     parser.add_argument("--list-models", action="store_true", help="List available models")
     parser.add_argument("--list-outputs", action="store_true", help="List training outputs")
     parser.add_argument("--validate-config", action="store_true", help="Validate configuration file")
+    parser.add_argument("--verify-lora", action="store_true", help="Verify LoRA setup")
     
     args = parser.parse_args()
     
@@ -215,6 +276,14 @@ Examples:
         success = full_pipeline(args.config)
         sys.exit(0 if success else 1)
     
+    elif args.full_lora:
+        # Use LoRA config by default if not specified
+        config_path = args.config
+        if config_path == "configs/config.yaml":
+            config_path = "configs/config_lora.yaml"
+        success = full_lora_pipeline(config_path)
+        sys.exit(0 if success else 1)
+    
     elif args.download:
         success = download_phase(args.config)
         sys.exit(0 if success else 1)
@@ -227,8 +296,24 @@ Examples:
         success = training_phase(args.config)
         sys.exit(0 if success else 1)
     
+    elif args.train_lora:
+        # Use LoRA config by default if not specified
+        config_path = args.config
+        if config_path == "configs/config.yaml":
+            config_path = "configs/config_lora.yaml"
+        success = training_lora_phase(config_path)
+        sys.exit(0 if success else 1)
+    
     elif args.test:
         success = run_script("train_model.py", ["--test-only", args.test], args.config)
+        sys.exit(0 if success else 1)
+    
+    elif args.test_lora:
+        # Use LoRA config by default if not specified
+        config_path = args.config
+        if config_path == "configs/config.yaml":
+            config_path = "configs/config_lora.yaml"
+        success = run_script("train_lora.py", ["--test-only", args.test_lora], config_path)
         sys.exit(0 if success else 1)
     
     elif args.list_models:
@@ -243,6 +328,10 @@ Examples:
         else:
             logging.error("Configuration validation failed!")
             sys.exit(1)
+    
+    elif args.verify_lora:
+        success = run_script("verify_lora_setup.py", config_path=args.config)
+        sys.exit(0 if success else 1)
     
     else:
         parser.print_help()

@@ -313,6 +313,9 @@ pip install torch torchvision torchaudio
 ### LoRA Training Usage
 
 ```bash
+# Verify lora setup
+python scripts/verify_lora_setup.py
+
 # Train with LoRA using default config
 python scripts/train_lora.py
 

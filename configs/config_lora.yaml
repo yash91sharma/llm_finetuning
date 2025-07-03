@@ -1,0 +1,59 @@
+# GPT-2 LoRA Fine-tuning Configuration
+
+model:
+  name: "gpt2"
+  save_path: "models/"
+  cache_dir: "models/cache/"
+  
+data:
+  train_file: "data/train_data.json"
+  eval_file: "data/eval_data.json"
+  max_length: 512
+  train_test_split: 0.1
+  
+# LoRA Configuration
+lora:
+  r: 16                          # Rank of adaptation
+  lora_alpha: 32                 # LoRA scaling parameter
+  lora_dropout: 0.1              # Dropout probability for LoRA layers
+  target_modules: ["c_attn", "c_proj", "c_fc"]  # Target modules for LoRA
+  bias: "none"                   # Bias type ('none', 'all', 'lora_only')
+  modules_to_save: null          # Additional modules to save (optional)
+  
+# Training Configuration
+training:
+  output_dir: "outputs/"
+  num_train_epochs: 5            # More epochs for LoRA since it's more efficient
+  per_device_train_batch_size: 8 # Can increase batch size with LoRA
+  per_device_eval_batch_size: 8
+  gradient_accumulation_steps: 2
+  learning_rate: 0.0003          # Higher learning rate for LoRA (3e-4)
+  weight_decay: 0.01
+  warmup_steps: 100
+  logging_steps: 10
+  eval_steps: 100
+  save_steps: 500
+  save_total_limit: 3
+  eval_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  
+# Device Configuration
+device:
+  use_mps: true  # Use Apple Silicon GPU if available
+  use_cuda: false  # Set to true for NVIDIA GPUs
+  
+# Generation Configuration
+generation:
+  max_new_tokens: 100
+  temperature: 0.7
+  do_sample: true
+  pad_token_id: 50256  # GPT-2 EOS token
+  
+# Logging Configuration
+logging:
+  use_wandb: false
+  project_name: "gpt2-lora-finetuning"
+  run_name: "gpt2-lora-custom"
+  log_level: "INFO"
