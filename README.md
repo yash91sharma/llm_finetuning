@@ -33,11 +33,6 @@
 ## List Models and Outputs
 - To list all models or outputs, check the `models/` and `outputs/` directories directly.
 
-## Jupyter Notebooks
-- Start Jupyter Notebook: `jupyter notebook`
-- Open `notebooks/model_comparison.ipynb` to compare models
-- Open `notebooks/training_monitor.ipynb` to monitor training
-
 ## Monitoring Training
 - To monitor training in real-time, run: `tail -f outputs/*/training_log.txt`
 - To monitor system resources, run: `htop`
