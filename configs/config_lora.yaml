@@ -8,36 +8,38 @@ model:
 data:
   train_file: "data/train_data.json"
   eval_file: "data/eval_data.json"
-  max_length: 512
+  max_length: 256                
   train_test_split: 0.1
   
 # LoRA Configuration
 lora:
-  r: 16                          # Rank of adaptation
-  lora_alpha: 32                 # LoRA scaling parameter
-  lora_dropout: 0.1              # Dropout probability for LoRA layers
-  target_modules: ["c_attn", "c_proj", "c_fc"]  # Target modules for LoRA
-  bias: "none"                   # Bias type ('none', 'all', 'lora_only')
-  modules_to_save: null          # Additional modules to save (optional)
+  r: 32                          # Increased rank for better learning capacity
+  lora_alpha: 64                 # Increased scaling parameter (2x rank)
+  lora_dropout: 0.05             # Reduced dropout for better learning
+  target_modules: ["c_attn", "c_proj", "c_fc", "c_mlp"]  # Added c_mlp for better performance
+  bias: "lora_only"              # Include LoRA bias for better adaptation
+  modules_to_save: ["lm_head"]   # Save language model head for better generation
   
 # Training Configuration
 training:
   output_dir: "outputs/"
-  num_train_epochs: 5            # More epochs for LoRA since it's more efficient
-  per_device_train_batch_size: 8 # Can increase batch size with LoRA
-  per_device_eval_batch_size: 8
-  gradient_accumulation_steps: 2
-  learning_rate: 0.0003          # Higher learning rate for LoRA (3e-4)
-  weight_decay: 0.01
-  warmup_steps: 100
-  logging_steps: 10
-  eval_steps: 100
-  save_steps: 500
-  save_total_limit: 3
+  num_train_epochs: 15           # More epochs needed for this specific dataset
+  per_device_train_batch_size: 4 # Smaller batch size for better gradient updates
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4  # Increased to maintain effective batch size
+  learning_rate: 0.0005          # Slightly higher learning rate for better learning
+  weight_decay: 0.005            # Reduced weight decay for small dataset
+  warmup_steps: 50               # Reduced warmup for small dataset
+  logging_steps: 5               # More frequent logging
+  eval_steps: 25                 # More frequent evaluation
+  save_steps: 100
+  save_total_limit: 5            # Keep more checkpoints
   eval_strategy: "steps"
   load_best_model_at_end: true
   metric_for_best_model: "eval_loss"
   greater_is_better: false
+  dataloader_drop_last: false    # Don't drop incomplete batches
+  lr_scheduler_type: "cosine"    # Better learning rate schedule
   
 # Device Configuration
 device:
@@ -46,10 +48,13 @@ device:
   
 # Generation Configuration
 generation:
-  max_new_tokens: 100
-  temperature: 0.7
+  max_new_tokens: 150            # Increased for longer responses
+  temperature: 0.3               # Lower temperature for more consistent responses
   do_sample: true
-  pad_token_id: 50256  # GPT-2 EOS token
+  top_p: 0.9                     # Add nucleus sampling
+  top_k: 50                      # Add top-k sampling
+  repetition_penalty: 1.1        # Prevent repetition
+  pad_token_id: 50256            # GPT-2 EOS token
   
 # Logging Configuration
 logging:
@@ -57,3 +62,11 @@ logging:
   project_name: "gpt2-lora-finetuning"
   run_name: "gpt2-lora-custom"
   log_level: "INFO"
+
+# Advanced Training Settings
+advanced:
+  gradient_checkpointing: true   # Save memory with gradient checkpointing
+  fp16: false                    # Use fp16 for faster training (disable for MPS)
+  dataloader_num_workers: 0      # Number of workers for data loading
+  remove_unused_columns: false   # Keep all columns for custom formatting
+  prediction_loss_only: true     # Only compute loss for predictions
