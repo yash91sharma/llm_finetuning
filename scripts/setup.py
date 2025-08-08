@@ -1,14 +1,6 @@
-#!/usr/bin/env python3
-"""
-Environment Setup Script
-Sets up the complete environment for GPT-2 fine-tuning.
-"""
-
 import os
 import sys
 import subprocess
-import yaml
-from pathlib import Path
 
 
 def run_command(command, description):
@@ -62,24 +54,17 @@ def verify_installation():
         f"{sys.executable} scripts/verify_setup.py", "Verifying installation"
     )
 
-
-def setup_config():
-    """Check and optionally create default config."""
-    config_path = "configs/config.yaml"
-
-    if os.path.exists(config_path):
-        print("Configuration file already exists")
-        return True
-
-    print("Configuration file not found")
-    print("Please ensure configs/config.yaml exists")
-    return False
+def verify_lora_installation():
+    """Verify that the installation was successful."""
+    return run_command(
+        f"{sys.executable} scripts/verify_lora_setup.py", "Verifying lora installation"
+    )
 
 
 def main():
     """Main setup function."""
     print("=" * 50)
-    print("GPT-2 Fine-tuning Environment Setup")
+    print("Running Environment Setup")
     print("=" * 50)
 
     # Check environment
@@ -95,20 +80,15 @@ def main():
     if not verify_installation():
         print("\nInstallation verification failed")
         sys.exit(1)
-
-    # Check config
-    if not setup_config():
-        print("\nConfiguration setup failed")
+    
+    # Verify LoRA installation
+    if not verify_lora_installation():
+        print("\nLoRA installation verification failed")
         sys.exit(1)
 
     print("\n" + "=" * 50)
     print("Environment setup completed successfully!")
     print("=" * 50)
-    print("\nNext steps:")
-    print("1. Review configs/config.yaml")
-    print("2. Run: python scripts/main.py --full")
-    print("3. Open notebooks/model_comparison.ipynb")
-    print("\nFor help: python scripts/main.py --help")
 
 
 if __name__ == "__main__":

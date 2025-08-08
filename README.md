@@ -6,7 +6,7 @@
 ## Environment Setup (Everytime)
 - Activate the virtual environment: `source llm_training_env/bin/activate`
 - Upgrade pip: `pip install --upgrade pip`
-- Run the setup script: `python setup.py`
+- Run the setup script: `python scripts/setup.py`
 (this installs all the dependencies from the requirements.txt file too)
 
 ## Data
@@ -14,8 +14,8 @@
 - Place your evaluation data in: `data/eval_data.json`
 
 ## Configuration Files
-- Standard configuration file is located at: `configs/config.yaml`
-- LoRA configuration file is located at: `configs/config_lora.yaml`
+- All layers fine-tuning config file: `configs/config.yaml`
+- LoRA config file: `configs/config_lora.yaml`
 
 ## Model Download
 - To download the model, run: `python scripts/download_model.py --config CONFIG_PATH`
