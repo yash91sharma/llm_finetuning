@@ -6,72 +6,17 @@ Handles the complete training, testing, and validation pipeline for GPT-2 fine-t
 
 import os
 import json
-import yaml
 import torch
 import argparse
 from pathlib import Path
 from datetime import datetime
-from transformers import (
-    GPT2LMHeadModel,
-    GPT2Tokenizer,
-    Trainer,
-    TrainingArguments,
-    DataCollatorForLanguageModeling,
-)
-from torch.utils.data import Dataset
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers.trainer import Trainer
+from transformers.training_args import TrainingArguments
+from transformers.data.data_collator import DataCollatorForLanguageModeling
 from sklearn.model_selection import train_test_split
 import logging
-
-
-def setup_logging(log_level="INFO"):
-    """Set up logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-
-
-def load_config(config_path):
-    """Load configuration from YAML file."""
-    with open(config_path, "r") as file:
-        config = yaml.safe_load(file)
-    return config
-
-
-class CustomDataset(Dataset):
-    """Custom dataset for GPT-2 fine-tuning."""
-
-    def __init__(self, data, tokenizer, max_length):
-        self.data = data
-        self.tokenizer = tokenizer
-        self.max_length = max_length
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        item = self.data[idx]
-
-        # Format the text based on the instruction-input-output format
-        if item.get("input", "").strip():
-            text = f"Instruction: {item['instruction']}\nInput: {item['input']}\nOutput: {item['output']}"
-        else:
-            text = f"Instruction: {item['instruction']}\nOutput: {item['output']}"
-
-        # Tokenize
-        encoding = self.tokenizer(
-            text,
-            truncation=True,
-            max_length=self.max_length,
-            padding="max_length",
-            return_tensors="pt",
-        )
-
-        return {
-            "input_ids": encoding["input_ids"].squeeze(),
-            "attention_mask": encoding["attention_mask"].squeeze(),
-            "labels": encoding["input_ids"].squeeze(),
-        }
+from scripts.utils import setup_logging, load_config, CustomDataset
 
 
 def load_data(config):
