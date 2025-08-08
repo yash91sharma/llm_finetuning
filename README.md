@@ -24,7 +24,7 @@
 - To setup the device, run: `python scripts/setup_device.py --config configs/training/config_lora.yaml`
 
 ## Full fine-tuning (All layers)
-- To train the model, use: `python scripts/train_model.py --config configs/training/config.yaml`
+- To train the model, use: `python scripts/train.py --config configs/training/config.yaml`
 
 ## LoRA Training
 - To verify LoRA setup, run: `python scripts/verify_lora_setup.py`
