@@ -4,7 +4,6 @@
 - Create a virtual environment: `python3 -m venv llm_training_env`
 - Activate the virtual environment: `source llm_training_env/bin/activate`
 - Upgrade pip: `pip install --upgrade pip`
-- Install dependencies: `pip install --no-cache-dir -r requirements.txt`
 - Run the setup script: `python setup.py`
 
 ## Data
@@ -24,9 +23,6 @@
 ## Device Setup
 - To setup the device, run: `python scripts/main.py --setup [--config CONFIG_PATH]`
 - Alternatively, run: `python scripts/setup_device.py --config CONFIG_PATH`
-
-## Verify Environment
-- To verify the environment setup, run: `python scripts/verify_setup.py`
 
 ## Standard Training (Full Pipeline)
 - To run the full training pipeline, use: `python scripts/main.py --full [--config CONFIG_PATH]`
