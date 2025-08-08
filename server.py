@@ -11,12 +11,28 @@ with open(CONFIG_PATH) as f:
     config = json.load(f)
 MODEL_DIR = config["model_dir"]
 
+
+# Load finetuned model
 try:
     tokenizer = GPT2Tokenizer.from_pretrained(MODEL_DIR)
     model = GPT2LMHeadModel.from_pretrained(MODEL_DIR)
     model.eval()
 except Exception as e:
-    raise RuntimeError(f"Failed to load model from {MODEL_DIR}: {e}")
+    raise RuntimeError(f"Failed to load finetuned model from {MODEL_DIR}: {e}")
+
+# Load base GPT-2 model for comparison
+BASE_MODEL_DIR = Path(__file__).parent / "models/gpt2"
+BASE_TOKENIZER_DIR = Path(__file__).parent / "models/gpt2-tokenizer"
+if not BASE_MODEL_DIR.exists():
+    raise RuntimeError(f"Base GPT-2 model directory does not exist: {BASE_MODEL_DIR}")
+if not BASE_TOKENIZER_DIR.exists():
+    raise RuntimeError(f"Base GPT-2 tokenizer directory does not exist: {BASE_TOKENIZER_DIR}")
+try:
+    base_tokenizer = GPT2Tokenizer.from_pretrained(str(BASE_TOKENIZER_DIR.resolve()))
+    base_model = GPT2LMHeadModel.from_pretrained(str(BASE_MODEL_DIR.resolve()))
+    base_model.eval()
+except Exception as e:
+    raise RuntimeError(f"Failed to load base GPT-2 model or tokenizer: {e}")
 
 app = FastAPI(title="LLM Serving API")
 
@@ -33,14 +49,13 @@ class GenerationResponse(BaseModel):
     generated_text: str
 
 
+
+# Endpoint for finetuned model
 @app.post("/generate", response_model=GenerationResponse)
 def generate_text(req: GenerationRequest):
     try:
         input_ids = tokenizer.encode(req.prompt, return_tensors="pt")
-        
-        # Create attention mask for proper padding handling
         attention_mask = torch.ones_like(input_ids)
-        
         with torch.no_grad():
             output = model.generate(
                 input_ids,
@@ -52,6 +67,27 @@ def generate_text(req: GenerationRequest):
                 pad_token_id=tokenizer.pad_token_id,
             )
         generated = tokenizer.decode(output[0], skip_special_tokens=True)
+        return GenerationResponse(generated_text=generated)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Endpoint for base GPT-2 model
+@app.post("/generate_base", response_model=GenerationResponse)
+def generate_base_text(req: GenerationRequest):
+    try:
+        input_ids = base_tokenizer.encode(req.prompt, return_tensors="pt")
+        attention_mask = torch.ones_like(input_ids)
+        with torch.no_grad():
+            output = base_model.generate(
+                input_ids,
+                attention_mask=attention_mask,
+                max_new_tokens=req.max_new_tokens,
+                temperature=req.temperature,
+                top_p=req.top_p,
+                do_sample=req.do_sample,
+                pad_token_id=base_tokenizer.pad_token_id,
+            )
+        generated = base_tokenizer.decode(output[0], skip_special_tokens=True)
         return GenerationResponse(generated_text=generated)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

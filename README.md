@@ -33,7 +33,8 @@
 ## List Models and Outputs
 - To list all models or outputs, check the `models/` and `outputs/` directories directly.
 
-## Monitoring Training
-- To monitor training in real-time, run: `tail -f outputs/*/training_log.txt`
-- To monitor system resources, run: `htop`
-- For detailed GPU power metrics, run: `sudo powermetrics -n 1 -i 1000 --samplers gpu_power`
+## Model serving
+- Update the latest finetuned model directory in the serving config file.
+- Start the server: `python server.py`
+- Go to: `http://0.0.0.0:8000/docs`
+- Try the two endpoints. `Generate` uses the new fine-tuned model, and `Generate_base` uses the original GPT2 model.
