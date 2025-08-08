@@ -37,14 +37,19 @@ class GenerationResponse(BaseModel):
 def generate_text(req: GenerationRequest):
     try:
         input_ids = tokenizer.encode(req.prompt, return_tensors="pt")
+        
+        # Create attention mask for proper padding handling
+        attention_mask = torch.ones_like(input_ids)
+        
         with torch.no_grad():
             output = model.generate(
                 input_ids,
+                attention_mask=attention_mask,
                 max_new_tokens=req.max_new_tokens,
                 temperature=req.temperature,
                 top_p=req.top_p,
                 do_sample=req.do_sample,
-                pad_token_id=tokenizer.eos_token_id,
+                pad_token_id=tokenizer.pad_token_id,
             )
         generated = tokenizer.decode(output[0], skip_special_tokens=True)
         return GenerationResponse(generated_text=generated)

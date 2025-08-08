@@ -54,7 +54,6 @@ generation:
   top_p: 0.9                     # Add nucleus sampling
   top_k: 50                      # Add top-k sampling
   repetition_penalty: 1.1        # Prevent repetition
-  pad_token_id: 50256            # GPT-2 EOS token
   
 # Logging Configuration
 logging:

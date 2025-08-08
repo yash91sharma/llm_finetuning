@@ -11,7 +11,7 @@ from transformers.data.data_collator import DataCollatorForLanguageModeling
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, TaskType
 from sklearn.model_selection import train_test_split
 import logging
-from scripts.utils import setup_logging, load_config, CustomDataset
+from utils import setup_logging, load_config, CustomDataset
 
 
 def load_data(config):
@@ -66,15 +66,19 @@ def setup_model_and_tokenizer(config, device):
     # Load tokenizer
     tokenizer = GPT2Tokenizer.from_pretrained(tokenizer_path)
 
-    # Ensure pad token is set
+    # Handle pad token properly
     if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
+        # If no pad token exists, add one
+        special_tokens_dict = {"pad_token": "<PAD>"}
+        num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+        logging.info(f"Added dedicated pad token '<PAD>' to tokenizer")
 
     # Load model
     model = GPT2LMHeadModel.from_pretrained(model_path)
 
-    # Resize token embeddings if necessary
-    model.resize_token_embeddings(len(tokenizer))
+    # Resize token embeddings if we added new tokens
+    if tokenizer.pad_token == "<PAD>":
+        model.resize_token_embeddings(len(tokenizer))
 
     # Prepare model for training (especially for quantization if needed)
     model = prepare_model_for_kbit_training(model)
@@ -248,7 +252,7 @@ def test_model(model_path, config):
                 max_new_tokens=generation_config["max_new_tokens"],
                 temperature=generation_config["temperature"],
                 do_sample=generation_config["do_sample"],
-                pad_token_id=generation_config["pad_token_id"],
+                pad_token_id=tokenizer.pad_token_id if tokenizer.pad_token_id is not None else tokenizer.unk_token_id,
                 eos_token_id=tokenizer.eos_token_id,
             )
 

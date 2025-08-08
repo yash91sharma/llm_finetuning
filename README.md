@@ -18,17 +18,17 @@
 - LoRA config file: `configs/config_lora.yaml`
 
 ## Model Download
-- To download the model, run: `python scripts/download_model.py --config CONFIG_PATH`
+- To download the model, run: `python scripts/download_model.py --config configs/training/config_lora.yaml`
 
 ## Device Setup
-- To setup the device, run: `python scripts/setup_device.py --config CONFIG_PATH`
+- To setup the device, run: `python scripts/setup_device.py --config configs/training/config_lora.yaml`
 
-## Standard Training (All layers)
-- To train the model, use: `python scripts/train_model.py --config CONFIG_PATH`
+## Full fine-tuning (All layers)
+- To train the model, use: `python scripts/train_model.py --config configs/training/config.yaml`
 
 ## LoRA Training
 - To verify LoRA setup, run: `python scripts/verify_lora_setup.py`
-- To train with LoRA, use: `python scripts/train_lora.py --config CONFIG_PATH`
+- To train with LoRA, use: `python scripts/train_lora.py --config configs/training/config_lora.yaml`
 
 ## List Models and Outputs
 - To list all models or outputs, check the `models/` and `outputs/` directories directly.

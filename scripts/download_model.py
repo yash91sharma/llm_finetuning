@@ -1,30 +1,10 @@
-#!/usr/bin/env python3
-"""
-Model Download Script
-Downloads and saves GPT-2 model and tokenizer to local directory.
-"""
-
 import os
 import yaml
 import argparse
 from pathlib import Path
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import logging
-
-
-def setup_logging(log_level="INFO"):
-    """Set up logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-
-
-def load_config(config_path):
-    """Load configuration from YAML file."""
-    with open(config_path, "r") as file:
-        config = yaml.safe_load(file)
-    return config
+from utils import setup_logging, load_config
 
 
 def download_model(config):
@@ -43,23 +23,30 @@ def download_model(config):
     logging.info(f"Downloading {model_name} model...")
 
     try:
-        # Download and save tokenizer
         logging.info("Downloading tokenizer...")
         tokenizer = GPT2Tokenizer.from_pretrained(model_name, cache_dir=cache_dir)
         tokenizer.save_pretrained(tokenizer_save_path)
         logging.info(f"Tokenizer saved to {tokenizer_save_path}")
 
-        # Download and save model
         logging.info("Downloading model...")
         model = GPT2LMHeadModel.from_pretrained(model_name, cache_dir=cache_dir)
         model.save_pretrained(model_save_path)
         logging.info(f"Model saved to {model_save_path}")
 
-        # Add pad token if it doesn't exist
+        # Add a dedicated pad token instead of using eos_token
         if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
+            # Add a new special token for padding
+            special_tokens_dict = {"pad_token": "<PAD>"}
+            num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+            
+            # Resize model embeddings to accommodate new token
+            model.resize_token_embeddings(len(tokenizer))
+            
+            # Save updated tokenizer and model
             tokenizer.save_pretrained(tokenizer_save_path)
-            logging.info("Added pad token to tokenizer")
+            model.save_pretrained(model_save_path)
+            
+            logging.info(f"Added dedicated pad token '<PAD>' to tokenizer (added {num_added_toks} tokens)")
 
         logging.info("Model and tokenizer downloaded successfully!")
         return True

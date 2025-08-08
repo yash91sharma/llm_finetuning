@@ -67,11 +67,19 @@ def setup_model_and_tokenizer(config, device):
 
     tokenizer = GPT2Tokenizer.from_pretrained(tokenizer_path)
 
+    # Handle pad token properly
     if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
-
+        # If no pad token exists, add one
+        special_tokens_dict = {"pad_token": "<PAD>"}
+        num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+        logging.info(f"Added dedicated pad token '<PAD>' to tokenizer")
+    
     model = GPT2LMHeadModel.from_pretrained(model_path)
     model = model.to(device)
+
+    # Resize token embeddings if we added new tokens
+    if tokenizer.pad_token == "<PAD>":
+        model.resize_token_embeddings(len(tokenizer))
 
     model.config.pad_token_id = tokenizer.pad_token_id
 
@@ -177,8 +185,15 @@ def test_model(model_path, config):
     model = GPT2LMHeadModel.from_pretrained(model_path)
     tokenizer = GPT2Tokenizer.from_pretrained(model_path)
 
+    # Handle pad token properly
     if tokenizer.pad_token is None:
-        tokenizer.pad_token = tokenizer.eos_token
+        # If no pad token exists, add one
+        special_tokens_dict = {"pad_token": "<PAD>"}
+        num_added_toks = tokenizer.add_special_tokens(special_tokens_dict)
+        logging.info(f"Added dedicated pad token '<PAD>' to tokenizer")
+        
+        # Resize token embeddings if we added new tokens
+        model.resize_token_embeddings(len(tokenizer))
 
     model.config.pad_token_id = tokenizer.pad_token_id
 

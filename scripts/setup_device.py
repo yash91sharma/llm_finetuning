@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Device Setup Script
-Sets up the model for training on the specified device (MPS/CUDA/CPU).
-"""
-
 import os
 import yaml
 import torch
@@ -11,21 +5,7 @@ import argparse
 from pathlib import Path
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import logging
-
-
-def setup_logging(log_level="INFO"):
-    """Set up logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level),
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-
-
-def load_config(config_path):
-    """Load configuration from YAML file."""
-    with open(config_path, "r") as file:
-        config = yaml.safe_load(file)
-    return config
+from utils import setup_logging, load_config
 
 
 def get_device(config):
@@ -35,9 +15,6 @@ def get_device(config):
     if device_config.get("use_mps", False) and torch.backends.mps.is_available():
         device = torch.device("mps")
         logging.info("Using MPS (Apple Silicon GPU)")
-    elif device_config.get("use_cuda", False) and torch.cuda.is_available():
-        device = torch.device("cuda")
-        logging.info(f"Using CUDA GPU: {torch.cuda.get_device_name()}")
     else:
         device = torch.device("cpu")
         logging.info("Using CPU")
