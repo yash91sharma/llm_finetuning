@@ -1,5 +1,8 @@
 # LLM Training Project - Usage Guide
 
+## Objective
+Finetune the GPT2 model with data about "Jalal the cat", and then serve the new model and old models. The new fine-tuned model should correctly answer questions about Jalal the cat's space adventures, as mentioned in the training data. While the original GPT2 model should not be able to.
+
 ## Environment Setup (One Time)
 - Create a virtual environment: `python3 -m venv llm_training_env`
 
