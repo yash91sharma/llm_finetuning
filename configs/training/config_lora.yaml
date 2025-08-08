@@ -13,12 +13,12 @@ data:
   
 # LoRA Configuration
 lora:
-  r: 32                          # Increased rank for better learning capacity
-  lora_alpha: 64                 # Increased scaling parameter (2x rank)
-  lora_dropout: 0.05             # Reduced dropout for better learning
-  target_modules: ["c_attn", "c_proj", "c_fc", "c_mlp"]  # Added c_mlp for better performance
-  bias: "lora_only"              # Include LoRA bias for better adaptation
-  modules_to_save: ["lm_head"]   # Save language model head for better generation
+  r: 32                          # 8 did not work at all.
+  lora_alpha: 64                 # 2x rank, typically.
+  lora_dropout: 0.05             # Dataset is small, so keep dropout low
+  target_modules: ["c_attn", "c_proj", "c_fc", "c_mlp"]
+  bias: "lora_only"              
+  modules_to_save: ["lm_head"]
   
 # Training Configuration
 training:
@@ -27,33 +27,33 @@ training:
   per_device_train_batch_size: 4 # Smaller batch size for better gradient updates
   per_device_eval_batch_size: 4
   gradient_accumulation_steps: 4  # Increased to maintain effective batch size
-  learning_rate: 0.0005          # Slightly higher learning rate for better learning
-  weight_decay: 0.005            # Reduced weight decay for small dataset
-  warmup_steps: 50               # Reduced warmup for small dataset
-  logging_steps: 5               # More frequent logging
-  eval_steps: 25                 # More frequent evaluation
+  learning_rate: 0.0005          
+  weight_decay: 0.005            
+  warmup_steps: 50               
+  logging_steps: 5               
+  eval_steps: 25                 
   save_steps: 100
-  save_total_limit: 5            # Keep more checkpoints
+  save_total_limit: 5            
   eval_strategy: "steps"
   load_best_model_at_end: true
   metric_for_best_model: "eval_loss"
   greater_is_better: false
-  dataloader_drop_last: false    # Don't drop incomplete batches
-  lr_scheduler_type: "cosine"    # Better learning rate schedule
+  dataloader_drop_last: false
+  lr_scheduler_type: "cosine"    
   
 # Device Configuration
 device:
   use_mps: true  # Use Apple Silicon GPU if available
-  use_cuda: false  # Set to true for NVIDIA GPUs
+  use_cuda: false
   
 # Generation Configuration
 generation:
-  max_new_tokens: 150            # Increased for longer responses
-  temperature: 0.3               # Lower temperature for more consistent responses
+  max_new_tokens: 150
+  temperature: 0.3
   do_sample: true
-  top_p: 0.9                     # Add nucleus sampling
-  top_k: 50                      # Add top-k sampling
-  repetition_penalty: 1.1        # Prevent repetition
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.1
   
 # Logging Configuration
 logging:
