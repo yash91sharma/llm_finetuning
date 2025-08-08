@@ -1,7 +1,9 @@
 # LLM Training Project - Usage Guide
 
-## Environment Setup
+## Environment Setup (One Time)
 - Create a virtual environment: `python3 -m venv llm_training_env`
+
+## Environment Setup (Everytime)
 - Activate the virtual environment: `source llm_training_env/bin/activate`
 - Upgrade pip: `pip install --upgrade pip`
 - Run the setup script: `python setup.py`
